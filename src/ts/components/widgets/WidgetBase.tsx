@@ -2,23 +2,26 @@ import * as React from 'react';
 import { esriPromise } from 'esri-promise';
 
 export interface WidgetProps {
-    scriptUri: string,
+    scriptUri?: string,
     map?: __esri.Map,
     view?: __esri.SceneView | __esri.MapView,
     position?: string,
     widgetProperties?: {
-      [propName: string]: any;
-    }
-
+        [propName: string]: any
+    },
+    widgetWatchables?: string[],
     onLoad?: (instance: __esri.Widget) => any,
-    onFail?: (e: any) => any
+    onFail?: (e: any) => any,
+    onWidgetPropertyChange?: (key: string, value: any) => any
 }
 
 interface ComponentState {
     scriptUri: string,
     map: __esri.Map,
     view: __esri.View,
-    instance: __esri.Widget
+    instance: __esri.Widget,
+    widgetProperties: __esri.WidgetProperties,
+    widgetWatchables: string[]
 }
 
 export default class Widget extends React.Component<WidgetProps, ComponentState> {
@@ -28,7 +31,9 @@ export default class Widget extends React.Component<WidgetProps, ComponentState>
             scriptUri: this.props.scriptUri,
             map: this.props.map,
             view: this.props.view,
-            instance: null
+            instance: null,
+            widgetProperties: this.props.widgetProperties,
+            widgetWatchables: this.props.widgetWatchables
         }
         this.renderWidget = this.renderWidget.bind(this);
     }
@@ -39,7 +44,8 @@ export default class Widget extends React.Component<WidgetProps, ComponentState>
       ]).then(([
         Widget
       ]) => {
-        this.renderWidget(Widget)
+        this.renderWidget(Widget);
+        // this.registerStateChanges(this.state.instance, 'widgetProperties', this.props.widgetWatchables, this.props.onWidgetPropertyChange);
         if (this.props.onLoad) {
           this.props.onLoad(this.state.instance);
         }
